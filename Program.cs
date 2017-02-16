@@ -23,6 +23,14 @@ namespace ConsoleApplication
 
                 System.Console.WriteLine("[" + cnt + "] Get word '" + word + "'...");
 
+                // handle duplicate words
+                if (translations.ContainsKey(word)) {
+                    System.Console.WriteLine("WARNING: duplicate word '" + word + "' found...");
+                    translations.Add("", new List<string>() {"DOUBLEKEYERR: " + word});
+                    continue;
+                }
+
+
                 if (translation != null) {
                     translations.Add(word, translation);
                 } else {
