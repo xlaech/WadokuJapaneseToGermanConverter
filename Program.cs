@@ -12,16 +12,13 @@ namespace ConsoleApplication
         {
             Console.WriteLine("This program will look up all the translations for the 25k list");
 
-            string infile = @"25kwordsin.csv";
+            string infile = "25kwordsin.csv";
 
             string[] words = System.IO.File.ReadAllLines(infile);
             Dictionary<string, List<string>> translations = new Dictionary<string, List<string>>();
 
             int cnt = 1;
             foreach (string word in words) {
-                if (cnt > 30)
-                    break;
-
                 List<string> translation = translate(word);
 
                 System.Console.WriteLine("[" + cnt + "] Get word '" + word + "'...");
