@@ -17,8 +17,9 @@ namespace ConsoleApplication
             string[] words = System.IO.File.ReadAllLines(infile);
             Dictionary<string, List<string>> translations = new Dictionary<string, List<string>>();
 
-            int cnt = 1;
+            int cnt = 0;
             foreach (string word in words) {
+                cnt++;
                 List<string> translation = translate(word);
 
                 System.Console.WriteLine("[" + cnt + "] Get word '" + word + "'...");
@@ -37,8 +38,6 @@ namespace ConsoleApplication
                     System.Console.WriteLine("WARNING: '" + word + "' not found...");
                     translations.Add(word, new List<string>() {""});
                 }
-
-                cnt++;
             }
 
             // write result to a file
