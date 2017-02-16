@@ -26,7 +26,7 @@ namespace ConsoleApplication
                 // handle duplicate words
                 if (translations.ContainsKey(word)) {
                     System.Console.WriteLine("WARNING: duplicate word '" + word + "' found...");
-                    translations.Add("", new List<string>() {"DOUBLEKEYERR: " + word});
+                    translations.Add("line: " + cnt, new List<string>() {"DOUBLEKEYERR: " + word});
                     continue;
                 }
 
