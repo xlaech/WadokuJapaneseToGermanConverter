@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 using HtmlAgilityPack;
 
 namespace ConsoleApplication
@@ -15,36 +17,55 @@ namespace ConsoleApplication
             string infile = "25kwordsin.csv";
 
             string[] words = System.IO.File.ReadAllLines(infile);
-            Dictionary<string, List<string>> translations = new Dictionary<string, List<string>>();
+            Dictionary<int, Tuple<string, Task<string>>> translations = new Dictionary<int, Tuple<string, Task<string>>>();
 
             int cnt = 0;
             foreach (string word in words) {
                 cnt++;
-                List<string> translation = translate(word);
+                
+                // Start a Task for getting the word
+                System.Console.WriteLine("[" + cnt + "|" + words.Length + "] Task for '" + word + "' created...");
+                Task<string> translation = asyncGetTrans(word);
+                translation.Start();
+                translations.Add(cnt, new Tuple<string, Task<string>>(word, translation));
+            }
+                
+            // while not all Tasks have finished
+            while(translations.Values
+                              .Select(x => x.Item2.IsCompleted)
+                              .Aggregate((x,y) => x && y)) 
+            {
+                // get number of threads finished
+                int completedThreads = translations.Values
+                                                 .Select(x => x.Item2.IsCompleted ? 1 : 0)
+                                                 .Aggregate((x,y) => x + y); 
 
-                System.Console.WriteLine("[" + cnt + "] Get word '" + word + "'...");
-
-                // handle duplicate words
-                if (translations.ContainsKey(word)) {
-                    System.Console.WriteLine("WARNING: duplicate word '" + word + "' found...");
-                    translations.Add("line: " + cnt, new List<string>() {"DOUBLEKEYERR: " + word});
-                    continue;
-                }
-
-
-                if (translation != null) {
-                    translations.Add(word, translation);
-                } else {
-                    System.Console.WriteLine("WARNING: '" + word + "' not found...");
-                    translations.Add(word, new List<string>() {""});
-                }
+                System.Console.WriteLine("[" + completedThreads + "|" + translations.Count + "] finished");
+                Thread.Sleep(3000);
             }
 
             // write result to a file
-            System.IO.File.WriteAllLines("outfile.csv", translations
-                            .Select(x => x.Key + ";" + toNumberListString(x.Value).Replace("&nbsp","")));
+            System.IO.File.WriteAllLines("outfile.csv", translations.Values
+                            .Select(x => x.Item1 + ";" + x.Item2.Result));
 
 	    }
+
+        static Task<string> asyncGetTrans(string word) {
+            return new Task<string>(() => {
+                System.Console.WriteLine("Start search for word '" + word + "'...");
+                List<string> translation = translate(word);
+
+                if (translation == null) {
+                    System.Console.WriteLine("Word '" + word + "' was not found");
+                    return "";
+                }
+
+                return toNumberListString(translation)
+                            .Replace("&nbsp","")
+                            .Replace("<br>","")
+                            .Replace("<br/>","");
+            });
+        }
 
         /// <SUMMARY>
         /// Transforms a list of Strings in an enumberated string
